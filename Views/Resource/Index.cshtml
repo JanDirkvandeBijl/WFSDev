@@ -1,0 +1,59 @@
+﻿@model IEnumerable<WFSDev.Models.LocalizedResource>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="searchString" class="form-control" placeholder="Search by Key or Translation" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+<a asp-action="Create" class="btn btn-success w-100">Add New</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Culture</th>
+            <th>Key</th>
+            <th>Translation</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr id="row-@item.Id">
+                <td>@item.Culture.Name</td> <!-- Assuming Culture has a Name property -->
+                <td>@item.Key</td>
+                <td>@item.Translation</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a>
+                    <button class="btn btn-danger" onclick="deleteResource(@item.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    function deleteResource(id) {
+        console.log("Deleting resource with ID:", id); // Debugging line
+        if (confirm('Are you sure you want to delete this resource?')) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", '@Url.Action("Delete", "Resource")', true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var result = JSON.parse(xhr.responseText);
+                    if (result.success) {
+                        var row = document.getElementById('row-' + id);
+                        row.parentNode.removeChild(row);
+                    } else {
+                        alert('Error deleting resource');
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(id)); // Send the id directly
+        }
+    }
+
+</script>

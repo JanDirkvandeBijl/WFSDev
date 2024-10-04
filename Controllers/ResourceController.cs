@@ -75,18 +75,32 @@ namespace WFSDev.Controllers
         {
             if (ModelState.IsValid && !string.IsNullOrWhiteSpace(localizedResource.Key))
             {
-                foreach (var translation in localizedResource.Translations ?? [])
+                if (localizedResource.SubmitType == SubmitType.Create)
+                {
+                    // Check if the resource already exists
+                    var existingResource = await _context.LocalizedResources
+                        .FirstOrDefaultAsync(lr => lr.Key == localizedResource.Key);
+
+                    if (existingResource != null)
+                    {
+                        ModelState.AddModelError(string.Empty, "A resource with this key already exists.");
+                        ViewData["Cultures"] = await _context.Cultures.ToListAsync();
+                        return View(localizedResource);
+                    }
+                }
+
+                foreach (var translation in localizedResource.Translations ?? new List<Translation>())
                 {
                     if (!string.IsNullOrWhiteSpace(translation.Value))
                     {
-                        var existingResource = await _context.LocalizedResources
+                        var existingTranslation = await _context.LocalizedResources
                             .FirstOrDefaultAsync(lr => lr.CultureId == translation.CultureId && lr.Key == localizedResource.Key);
 
-                        if (existingResource != null)
+                        if (existingTranslation != null)
                         {
                             // Update existing resource
-                            existingResource.Translation = translation.Value;
-                            _context.Update(existingResource);
+                            existingTranslation.Translation = translation.Value;
+                            _context.Update(existingTranslation);
                         }
                         else
                         {
@@ -111,7 +125,6 @@ namespace WFSDev.Controllers
             ViewData["Cultures"] = await _context.Cultures.ToListAsync();
             return View(localizedResource);
         }
-
 
 
         [HttpPost]

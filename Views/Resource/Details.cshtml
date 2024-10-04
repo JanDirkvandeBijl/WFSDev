@@ -2,7 +2,7 @@
 
 <h2>@(string.IsNullOrEmpty(Model.Key) ? "Create Localized Resource" : "Edit Localized Resource")</h2>
 
-<form asp-action="@(string.IsNullOrEmpty(Model.Key) ? "Create" : "Details")" method="post">
+<form asp-action="Details" method="post">
     <div class="form-group mb-3">
         <label asp-for="Key" class="control-label"></label>
         <input asp-for="Key" class="form-control" />

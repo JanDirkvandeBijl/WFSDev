@@ -12,7 +12,7 @@ namespace WFSDev.Models
 
     public class Translation
     {
-        public int Id { get; set; } // Translation ID
+        public int? Id { get; set; } // Translation ID
         public int CultureId { get; set; } // ID of the culture
         public string? Value { get; set; } // The actual translation text
     }

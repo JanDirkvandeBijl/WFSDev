@@ -33,36 +33,6 @@ namespace WFSDev.Controllers
             return View(groupedResources);
         }
 
-        public async Task<IActionResult> Details(string? key)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return NotFound();
-            }
-
-            var localizedResources = await _context.LocalizedResources
-                .Include(lr => lr.Culture)
-                .Where(m => m.Key == key)
-                .ToListAsync();
-
-            var resourceModel = new LocalizedResourceDetails
-            {
-                Key = key,
-                Translations = localizedResources
-                                    .Select(e => new Translation
-                                    {
-                                        Id = e.Id,
-                                        Value = e.Translation,
-                                        CultureId = e.CultureId
-
-                                    }).ToList()
-            };
-
-
-            ViewData["Cultures"] = await _context.Cultures.ToListAsync();
-            return View(resourceModel);
-        }
-
        
 
         private bool LocalizedResourceExists(int id)
@@ -70,90 +40,63 @@ namespace WFSDev.Controllers
             return _context.LocalizedResources.Any(e => e.Id == id);
         }
 
-        public async Task<IActionResult> Create()
+        [HttpGet]
+        public async Task<IActionResult> Details(string key = "")
         {
             ViewData["Cultures"] = await _context.Cultures.ToListAsync();
-            return View("Details", new LocalizedResourceDetails());
+
+            if (string.IsNullOrEmpty(key))
+            {
+                // Nieuwe
+                return View(new LocalizedResourceDetails());
+            }
+            else
+            {
+                var localizedResource = new LocalizedResourceDetails
+                {
+                    Key = key,
+                    Translations = await _context.LocalizedResources
+                        .Where(lr => lr.Key == key)
+                        .Select(lr => new Translation
+                        {
+                            Id = lr.Id,
+                            CultureId = lr.CultureId,
+                            Value = lr.Translation
+                        }).ToListAsync()
+                };
+
+                return View(localizedResource);
+            }
         }
-      
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LocalizedResourceDetails localizedResource)
+        public async Task<IActionResult> Details(LocalizedResourceDetails localizedResource)
         {
             if (ModelState.IsValid && !string.IsNullOrWhiteSpace(localizedResource.Key))
             {
                 foreach (var translation in localizedResource.Translations ?? [])
                 {
-                    // Check if the CultureId and Key pair already exists
-                    bool exists = await _context.LocalizedResources
-                        .AnyAsync(lr => lr.CultureId == translation.CultureId && lr.Key == localizedResource.Key);
+                    if (!string.IsNullOrWhiteSpace(translation.Value))
+                    {
+                        var existingResource = await _context.LocalizedResources
+                            .FirstOrDefaultAsync(lr => lr.CultureId == translation.CultureId && lr.Key == localizedResource.Key);
 
-                    if (exists)
-                    {
-                        ModelState.AddModelError(string.Empty, $"This Culture and Key pair already exists for culture ID {translation.CultureId}.");
-                    }
-                    else
-                    {
-                        _context.Add(new LocalizedResource
+                        if (existingResource != null)
                         {
-                            Key = localizedResource.Key,
-                            Translation = translation.Value ?? "",
-                            CultureId = translation.CultureId
-                        });
-                    }
-                }
-
-                if (ModelState.IsValid)
-                {
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-
-            ViewData["Cultures"] = await _context.Cultures.ToListAsync();
-            return View("Details", localizedResource);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Details([Bind("Key,Translations")] LocalizedResourceDetails localizedResource)
-        {
-            if (ModelState.IsValid)
-            {
-                foreach (var translation in localizedResource.Translations ?? [])
-                {
-                    // Check if the CultureId and Key pair already exists
-                    bool exists = await _context.LocalizedResources
-                        .AnyAsync(lr => lr.CultureId == translation.CultureId && lr.Key == localizedResource.Key && lr.Id != translation.Id);
-
-                    if (exists)
-                    {
-                        ModelState.AddModelError(string.Empty, $"This Culture and Key pair already exists for culture ID {translation.CultureId}.");
-                    }
-                    else
-                    {
-                        try
-                        {
-                            var existingResource = await _context.LocalizedResources.FindAsync(translation.Id);
-                            if (existingResource != null)
-                            {
-                                existingResource.Translation = translation.Value ?? "";
-                                existingResource.CultureId = translation.CultureId;
-
-                                _context.Update(existingResource);
-                            }
+                            // Update existing resource
+                            existingResource.Translation = translation.Value;
+                            _context.Update(existingResource);
                         }
-                        catch (DbUpdateConcurrencyException)
+                        else
                         {
-                            if (!LocalizedResourceExists(translation.Id))
+                            // Create new resource
+                            _context.Add(new LocalizedResource
                             {
-                                return NotFound();
-                            }
-                            else
-                            {
-                                throw;
-                            }
+                                Key = localizedResource.Key,
+                                Translation = translation.Value,
+                                CultureId = translation.CultureId
+                            });
                         }
                     }
                 }
@@ -168,6 +111,7 @@ namespace WFSDev.Controllers
             ViewData["Cultures"] = await _context.Cultures.ToListAsync();
             return View(localizedResource);
         }
+
 
 
         [HttpPost]

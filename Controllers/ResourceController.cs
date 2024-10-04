@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using WFSDev.Data;
 using WFSDev.Models;
 
@@ -28,8 +26,11 @@ namespace WFSDev.Controllers
             {
                 localizedResources = localizedResources.Where(s => s.Key.Contains(searchString) || s.Translation.Contains(searchString));
             }
+            var groupedResources = await localizedResources
+                       .GroupBy(lr => lr.Key)
+                       .ToListAsync();
 
-            return View(await localizedResources.ToListAsync());
+            return View(groupedResources);
         }
 
         public async Task<IActionResult> Details(string? key)
@@ -78,7 +79,7 @@ namespace WFSDev.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Key,Translations")] LocalizedResourceDetails localizedResource)
+        public async Task<IActionResult> Create(LocalizedResourceDetails localizedResource)
         {
             if (ModelState.IsValid && !string.IsNullOrWhiteSpace(localizedResource.Key))
             {
@@ -111,12 +112,12 @@ namespace WFSDev.Controllers
             }
 
             ViewData["Cultures"] = await _context.Cultures.ToListAsync();
-            return View(localizedResource);
+            return View("Details", localizedResource);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Details([Bind("Id,Key,Translations")] LocalizedResourceDetails localizedResource)
+        public async Task<IActionResult> Details([Bind("Key,Translations")] LocalizedResourceDetails localizedResource)
         {
             if (ModelState.IsValid)
             {

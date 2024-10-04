@@ -8,17 +8,23 @@
         <input asp-for="Key" class="form-control" />
     </div>
 
-    @foreach (var culture in ViewBag.Cultures as List<Culture>) // Replace with your actual culture model
+    @if (ViewBag.Cultures is List<Culture> cultures)
     {
-        <div class="form-group mb-3">
-            <label class="control-label">@culture.Name</label>
-            <input type="hidden" name="Translations[@culture.Id].Id" value="@Model.Translations.FirstOrDefault(t => t.CultureId == culture.Id)?.Id" />
-            <input type="hidden" name="Translations[@culture.Id].CultureId" value="@culture.Id" />
-            <input type="text" name="Translations[@culture.Id].Translation"
-                   class="form-control"
-                   placeholder="Translation"
-                   value="@Model.Translations.FirstOrDefault(t => t.CultureId == culture.Id)?.Value" />
-        </div>
+        for (int i = 0; i < cultures.Count; i++)
+        {
+            var culture = cultures[i];
+            var translation = Model.Translations?.FirstOrDefault(t => t.CultureId == culture.Id);
+
+            <div class="form-group mb-3">
+                <label class="control-label">@culture.Name</label>
+                <input type="hidden" name="Translations[@i].CultureId" value="@culture?.Id" />
+                <input type="hidden" name="Translations[@i].Id" value="@translation?.Id" />
+                <input type="text" name="Translations[@i].Value"
+                       class="form-control"
+                       placeholder="Translation"
+                       value="@translation?.Value" />
+            </div>
+        }
     }
 
     <div class="form-group mt-4">

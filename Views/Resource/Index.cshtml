@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WFSDev.Models.LocalizedResource>
+﻿@model IEnumerable<IGrouping<string, WFSDev.Models.LocalizedResource>>
 
 <form asp-action="Index" method="get" class="mb-3">
     <div class="input-group">
@@ -12,27 +12,40 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Culture</th>
             <th>Key</th>
+            <th>Culture</th>
             <th>Translation</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var group in Model)
         {
-            <tr id="row-@item.Key">
-                <td>@item.Culture.Name</td> <!-- Assuming Culture has a Name property -->
-                <td>@item.Key</td>
-                <td>@item.Translation</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a>
-                    <button class="btn btn-danger" onclick="deleteResource(@item.Key)">Delete</button>
+            <tr>
+                <td colspan="4">
+                    <strong>@group.Key</strong>
                 </td>
+                <td></td>
+                <td></td>
+                <td>
+                    <a asp-action="Details" asp-route-key="@group.Key" class="btn btn-info">Details</a>
+                    <button class="btn btn-danger" onclick="deleteResource(@group.Key)">Delete</button>
+                </td> 
+
             </tr>
+            @foreach (var item in group)
+            {
+                <tr id="row-@item.Key">
+                    <td></td>
+                    <td>@item.Culture.Name</td>
+                    <td>@item.Translation</td>
+                    <td></td>
+                </tr>
+            }
         }
     </tbody>
 </table>
+
 
 <script type="text/javascript">
     function deleteResource(key) {

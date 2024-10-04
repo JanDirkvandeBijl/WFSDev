@@ -1,20 +1,26 @@
-﻿@model WFSDev.Models.LocalizedResource
+﻿@model WFSDev.Models.LocalizedResourceDetails
 
-<h2>@(Model.Id == 0 ? "Create Localized Resource" : "Edit Localized Resource")</h2>
+<h2>@(string.IsNullOrEmpty(Model.Key) ? "Create Localized Resource" : "Edit Localized Resource")</h2>
 
-<form asp-action="@(Model.Id == 0 ? "Create" : "Details")" method="post">
-    <div class="form-group mb-3">
-        <label asp-for="CultureId" class="control-label"></label>
-        <select asp-for="CultureId" class="form-control" asp-items="ViewBag.Cultures"></select>
-    </div>
+<form asp-action="@(string.IsNullOrEmpty(Model.Key) ? "Create" : "Details")" method="post">
     <div class="form-group mb-3">
         <label asp-for="Key" class="control-label"></label>
         <input asp-for="Key" class="form-control" />
     </div>
-    <div class="form-group mb-3">
-        <label asp-for="Translation" class="control-label"></label>
-        <input asp-for="Translation" class="form-control" />
-    </div>
+
+    @foreach (var culture in ViewBag.Cultures as List<Culture>) // Replace with your actual culture model
+    {
+        <div class="form-group mb-3">
+            <label class="control-label">@culture.Name</label>
+            <input type="hidden" name="Translations[@culture.Id].Id" value="@Model.Translations.FirstOrDefault(t => t.CultureId == culture.Id)?.Id" />
+            <input type="hidden" name="Translations[@culture.Id].CultureId" value="@culture.Id" />
+            <input type="text" name="Translations[@culture.Id].Translation"
+                   class="form-control"
+                   placeholder="Translation"
+                   value="@Model.Translations.FirstOrDefault(t => t.CultureId == culture.Id)?.Value" />
+        </div>
+    }
+
     <div class="form-group mt-4">
         <button type="submit" class="btn btn-primary me-2">Save</button>
         <a asp-action="Index" class="btn btn-secondary">Cancel</a>

@@ -24,7 +24,8 @@ namespace WFSDev.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                localizedResources = localizedResources.Where(s => s.Key.Contains(searchString) || s.Translation.Contains(searchString));
+                searchString = searchString.ToLower();
+                localizedResources = localizedResources.Where(s => s.Key.ToLower().Contains(searchString) || s.Translation.ToLower().Contains(searchString));
             }
             var groupedResources = await localizedResources
                        .GroupBy(lr => lr.Key)
@@ -73,6 +74,7 @@ namespace WFSDev.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Details(LocalizedResourceDetails localizedResource)
         {
+            localizedResource.Key = localizedResource.Key?.Trim();
             if (ModelState.IsValid && !string.IsNullOrWhiteSpace(localizedResource.Key))
             {
                 if (localizedResource.SubmitType == SubmitType.Create)

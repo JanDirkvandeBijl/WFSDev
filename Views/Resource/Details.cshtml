@@ -1,66 +1,38 @@
-﻿@model WFSDev.Models.Client
+﻿@model WFSDev.Models.LocalizedResourceDetails
 
-<h2>@(Model.Id == 0 ? "Create Client" : "Edit Client")</h2>
+<h2>@(string.IsNullOrEmpty(Model.Key) ? "Create Localized Resource" : "Edit Localized Resource")</h2>
 
 <form asp-action="Details" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="Id" />
-
+    <input type="hidden" asp-for="SubmitType" value="@(string.IsNullOrEmpty(Model.Key) ? "Create" : "Update")" />
     <div class="form-group mb-3">
-        <label asp-for="Name" class="control-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+        <label asp-for="Key" class="control-label"></label>
+        <input asp-for="Key" class="form-control" />
+        <span asp-validation-for="Key" class="text-danger"></span>
     </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Email" class="control-label"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
+    @if (ViewBag.Cultures is List<Culture> cultures)
+    {
+        for (int i = 0; i < cultures.Count; i++)
+        {
+            var culture = cultures[i];
+            var translation = Model.Translations?.FirstOrDefault(t => t.CultureId == culture.Id);
 
-    <div class="form-group mb-3">
-        <label asp-for="PhoneNumber" class="control-label"></label>
-        <input asp-for="PhoneNumber" class="form-control" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Address" class="control-label"></label>
-        <input asp-for="Address" class="form-control" />
-        <span asp-validation-for="Address" class="text-danger"></span>
-    </div>
+            <div class="form-group mb-3">
+                <label class="control-label">@culture.Name</label>
+                <input type="hidden" name="Translations[@i].CultureId" value="@culture?.Id" />
+                <input type="hidden" name="Translations[@i].Id" value="@translation?.Id" />
+                <input type="text" name="Translations[@i].Value"
+                       class="form-control"
+                       placeholder="Translation"
+                       value="@translation?.Value" />
+                <span asp-validation-for="Translations[@i].Value" class="text-danger"></span>
+            </div>
+        }
+    }
 
     <div class="form-group mt-4">
         <button type="submit" class="btn btn-primary me-2">Save</button>
-        <a asp-action="Clients" class="btn btn-secondary">Cancel</a>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
-
-@if (Model.ConnectionStrings != null && Model.ConnectionStrings.Any())
-{
-    <h3>Client Connection Strings</h3>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Connection Name</th>
-                <th>Server Name</th>
-                <th>Database Name</th>
-                <th>Additional Parameters</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var connectionString in Model.ConnectionStrings)
-            {
-                <tr>
-                    <td>@connectionString.Name</td>
-                    <td>@connectionString.ServerName</td>
-                    <td>@connectionString.DatabaseName</td>
-                    <td>@connectionString.AdditionalParameters</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-<div class="form-group mt-4">
-    <a asp-action="ConnectionStringDetails" asp-route-clientId="@Model.Id" class="btn btn-success">Create New Connection String</a>
-</div>

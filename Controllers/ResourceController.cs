@@ -96,11 +96,12 @@ namespace WFSDev.Controllers
                     if (!string.IsNullOrWhiteSpace(translation.Value))
                     {
                         var existingTranslation = await _context.LocalizedResources
-                            .FirstOrDefaultAsync(lr => lr.CultureId == translation.CultureId && lr.Key == localizedResource.Key);
+                            .FirstOrDefaultAsync(lr => lr.CultureId == translation.CultureId && lr.Id == translation.Id);
 
                         if (existingTranslation != null)
                         {
                             // Update existing resource
+                            existingTranslation.Key = localizedResource.Key;
                             existingTranslation.Translation = translation.Value;
                             _context.Update(existingTranslation);
                         }

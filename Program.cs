@@ -4,9 +4,12 @@ using WFSDev.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
+
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-var productionConnectionString = builder.Configuration.GetConnectionString("ProductionConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("WFSDevConnection") ?? throw new InvalidOperationException("Connection string 'WFSDevConnection' not found.");
+var productionConnectionString = builder.Configuration.GetConnectionString("WFSDevProductionConnection") ?? throw new InvalidOperationException("Connection string 'WFSDevProductionConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
